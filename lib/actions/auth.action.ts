@@ -2,6 +2,7 @@
 
 import {db,auth} from "@/Firebase/admin";
 import {cookies}from"next/headers"
+
 const ONE_WEEK=60 * 60 * 24 *7
 export async function signup(params:SignUpParams){
     const{uid,name,email}=params;
@@ -98,3 +99,4 @@ export async function isAuthenticated(){
     const user=await getCurrentUser();
     return !!user;
 }
+
