@@ -1,45 +1,70 @@
-import {db} from "@/Firebase/admin";
-import {generateObject} from "ai";
-import {google} from "@ai-sdk/google";
-import {feedbackSchema} from "@/constants";
+"use server";
+import { db } from "@/Firebase/admin";
+import { generateObject } from "ai";
+import { google } from "@ai-sdk/google";
+import { feedbackSchema } from "@/constants";
 
-export async function getInterviewByUserId(userId:string):Promise<Interview[] | null>{
-    const interview=await db.collection('interview').where('userid','==',userId).orderBy('createdAt','desc').get();
-    return interview.docs.map((doc)=>({
-        id:doc.id,
-        ...doc.data()
-    }))as Interview[];
+export async function getInterviewByUserId(
+  userId: string
+): Promise<Interview[] | null> {
+  const interview = await db
+    .collection("interview")
+    .where("userid", "==", userId)
+    .orderBy("createdAt", "desc")
+    .get();
+  return interview.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Interview[];
 }
 
-export async function getLatestInterviews(params:GetLatestInterviewsParams):Promise<Interview[] | null>{
-    const {userId,limit=20}=params;
+export async function getLatestInterviews(
+  params: GetLatestInterviewsParams
+): Promise<Interview[] | null> {
+  const { userId, limit = 20 } = params;
 
-
-    const interview=await db.collection('interview').orderBy('createdAt','desc').where('finalized','==',true).where('userid','!=',userId).limit(limit).get();
-    return interview.docs.map((doc)=>({
-        id:doc.id,
-        ...doc.data()
-    }))as Interview[];
+  const interview = await db
+    .collection("interview")
+    .orderBy("createdAt", "desc")
+    .where("finalized", "==", true)
+    .where("userid", "!=", userId)
+    .limit(limit)
+    .get();
+  return interview.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Interview[];
 }
 
-export async function getInterviewById(id:string):Promise<Interview | null>{
-    const interview=await db.collection('interview').doc(id).get();
-    return interview.data() as Interview | null;
+export async function getInterviewById(id: string): Promise<Interview | null> {
+  const interview = await db.collection("interview").doc(id).get();
+  return interview.data() as Interview | null;
 }
 
-export async function CreateFeedback(params:CreateFeedbackParams){
-    const {interviewId,userId,transcript}=params;
-    try{
-        const formattedTranscript=transcript.map((sentence:{role:string;content:string})=>
-            `-${sentence.role}: ${sentence.content}\n`
-        ).join("");
+export async function CreateFeedback(params: CreateFeedbackParams) {
+  const { interviewId, userId, transcript } = params;
+  try {
+    const formattedTranscript = transcript
+      .map(
+        (sentence: { role: string; content: string }) =>
+          `-${sentence.role}: ${sentence.content}\n`
+      )
+      .join("");
 
-        const {object:{totalScore,categoryScores,strengths,areasForImprovement,finalAssessment}}=await generateObject({
-            model:google('gemini-2.0-flash-001',{
-                structuredOutputs:false,
-            }),
-            schema:feedbackSchema,
-            prompt: `
+    const {
+      object: {
+        totalScore,
+        categoryScores,
+        strengths,
+        areasForImprovement,
+        finalAssessment,
+      },
+    } = await generateObject({
+      model: google("gemini-2.0-flash-001", {
+        structuredOutputs: false,
+      }),
+      schema: feedbackSchema,
+      prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
         Transcript:
         ${formattedTranscript}
@@ -51,42 +76,49 @@ export async function CreateFeedback(params:CreateFeedbackParams){
         - **Cultural & Role Fit**: Alignment with company values and job role.
         - **Confidence & Clarity**: Confidence in responses, engagement, and clarity.
         `,
-            system:
-                "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
-        })
-        const feedback=await db.collection("feedback").add({
-            interviewId,
-            userId,
-            totalScore,
-            categoryScores,
-            strengths,
-            areasForImprovement,
-            finalAssessment,
-            createdAt:new Date().toISOString()
-        })
-        return {
-            sucess:true,
-            feedbackId:feedback.id
-        }
-    }catch (e) {
-        console.error("Error in creating feedback",e)
-        return {
-            sucess:false
-        }
-    }
+      system:
+        "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
+    });
+    const feedback = await db.collection("feedback").add({
+      interviewId,
+      userId,
+      totalScore,
+      categoryScores,
+      strengths,
+      areasForImprovement,
+      finalAssessment,
+      createdAt: new Date().toISOString(),
+    });
+    return {
+      sucess: true,
+      feedbackId: feedback.id,
+    };
+  } catch (e) {
+    console.error("Error in creating feedback", e);
+    return {
+      sucess: false,
+    };
+  }
 }
 
-export async function getFeedbackByinterviewId(params:GetFeedbackByInterviewIdParams):Promise<Feedback | null>{
-    const {interviewId,userId}=params;
+export async function getFeedbackByinterviewId(
+  params: GetFeedbackByInterviewIdParams
+): Promise<Feedback | null> {
+  const { interviewId, userId } = params;
 
+  const feedback = await db
+    .collection("feedback")
+    .where("interviewId", "==", interviewId)
+    .where("userId", "==", userId)
+    .limit(1)
+    .get();
 
-    const feedback=await db.collection('feedback').where('interviewId','==',interviewId).where('userid','!=',userId).limit(1).get();
+  if (feedback.empty) return null;
 
-    if(feedback.empty)return null;
+  const feedbackDoc = feedback.docs[0];
 
-    const feedbackDoc=feedback.docs[0];
-
-    return {
-        id:feedbackDoc.id,...feedbackDoc.data()
-    }as Feedback;
+  return {
+    id: feedbackDoc.id,
+    ...feedbackDoc.data(),
+  } as Feedback;
 }
