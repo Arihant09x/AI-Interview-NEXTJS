@@ -1,6 +1,7 @@
 # AI Voice Agent for Interview - Next.js
 
-![AI Voice Agent Screenshot](/ai-voice-agent-screenshot.png)
+![AI Voice Agent Screenshot](home.png)
+![AI Interview Screenshot](Interview_With_AI.png)
 
 ## Live Website
 
