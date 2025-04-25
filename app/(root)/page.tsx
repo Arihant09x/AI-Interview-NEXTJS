@@ -5,11 +5,12 @@ import robot from "../../public/robot.png";
 import Image from "next/image";
 import InterviewCard from "../../Components/InterviewCard";
 import { getCurrentUser } from "@/lib/actions/auth.action";
-import { interviewer } from "../../constants/index";
 import {
   getInterviewByUserId,
   getLatestInterviews,
 } from "@/lib/actions/general.action";
+import LogoutButton from "@/components/LogoutButton"; // Import the LogoutButton
+import ToastButton from "@/Components/ToastButton"; // Import the ToastButton
 
 const Page = async () => {
   const user = await getCurrentUser();
@@ -17,10 +18,11 @@ const Page = async () => {
   const [userInterviews, LatestInterviews] = await Promise.all([
     getInterviewByUserId(user?.id!),
     getLatestInterviews({ userId: user?.id! }),
-  ]); //Doing Parallel request
+  ]); // Doing Parallel request
 
   const hasPastInterview = userInterviews?.length! > 0;
   const hasUpcomingInterview = LatestInterviews?.length! > 0;
+
   return (
     <>
       <section className="card-cta">
@@ -29,9 +31,12 @@ const Page = async () => {
           <p className="text-lg">
             Practice on real interview questions & get instant feedback
           </p>
-          <Button asChild className="btn-primary max-sm:w-full">
-            <Link href="/interview">Start an Interview</Link>
-          </Button>
+          <ToastButton
+            className="btn-primary"
+            href="/interview"
+            message="Redirecting to start an interview..."
+            label="Start an Interview"
+          />
         </div>
         <Image
           src={robot}

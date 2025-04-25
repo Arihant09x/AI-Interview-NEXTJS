@@ -2,10 +2,10 @@ import React from "react";
 import dayjs from "dayjs";
 import Image from "next/image";
 import { getRandomInterviewCover } from "@/lib/utils";
-import { Button } from "@/Components/ui/button";
-import Link from "next/link";
 import DisplayTechIcons from "@/Components/DisplayTechIcons";
 import { getFeedbackByinterviewId } from "@/lib/actions/general.action";
+import ToastButton from "@/Components/ToastButton"; // Import the ToastButton component
+
 const InterviewCard = async ({
   userId,
   interviewId,
@@ -25,6 +25,7 @@ const InterviewCard = async ({
   const forrmattedDate = dayjs(
     feedback?.createdAt || createdAt || Date.now()
   ).format("MMM D,YYYY");
+
   return (
     <div className="card-border w-[360px] max-sm:w-full min-h-96">
       <div className="card-interview">
@@ -39,7 +40,7 @@ const InterviewCard = async ({
             height={90}
             className="rounded-full object-fit size-[90px] "
           />
-          <h3 className="mt-5 capitalize">{role} Interivew</h3>
+          <h3 className="mt-5 capitalize">{role} Interview</h3>
           <div className="flex flex-row gap-5 mt-3">
             <div className="flex flex-row gap-2">
               <Image
@@ -62,20 +63,24 @@ const InterviewCard = async ({
         </div>
         <div className="flex flex-row justify-between ">
           <DisplayTechIcons techStack={techstack} />
-          <Button className="btn-primary">
-            <Link
-              href={
-                feedback
-                  ? `/interview/${interviewId}/feedback`
-                  : `/interview/${interviewId}`
-              }
-            >
-              {feedback ? "Check Feddback" : "Take a Interview"}
-            </Link>
-          </Button>
+          <ToastButton
+            className="btn-primary "
+            href={
+              feedback
+                ? `/interview/${interviewId}/feedback`
+                : `/interview/${interviewId}`
+            }
+            message={
+              feedback
+                ? "Redirecting to feedback page..."
+                : "Redirecting to take the interview..."
+            }
+            label={feedback ? "Check Feedback" : "Take an Interview"}
+          />
         </div>
       </div>
     </div>
   );
 };
+
 export default InterviewCard;

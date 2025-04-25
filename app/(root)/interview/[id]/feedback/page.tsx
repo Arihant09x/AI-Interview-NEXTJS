@@ -7,8 +7,7 @@ import { getCurrentUser } from "@/lib/actions/auth.action";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import dayjs from "dayjs";
-import { Button } from "@/Components/ui/button";
-import Link from "next/link";
+import ToastButton from "@/Components/ToastButton"; // Import the ToastButton component
 
 const Page = async ({ params }: RouteParams) => {
   const { id } = await params;
@@ -19,6 +18,7 @@ const Page = async ({ params }: RouteParams) => {
     interviewId: id,
     userId: user?.id!,
   });
+
   return (
     <section className="section-feedback">
       <div className="flex flex-row justify-center">
@@ -89,27 +89,25 @@ const Page = async ({ params }: RouteParams) => {
         </ul>
       </div>
 
-      <div className="buttons">
-        <Button className="btn-secondary flex-1">
-          <Link href="/" className="flex w-full justify-center">
-            <p className="text-sm font-semibold text-primary-200 text-center">
-              Back to dashboard
-            </p>
-          </Link>
-        </Button>
+      <div className="buttons flex flex-col sm:flex-row  gap-4">
+        {/* Back to Dashboard Button */}
+        <ToastButton
+          className="btn-secondary w-full sm:w-1/2 "
+          href="/"
+          message="Redirecting to the dashboard..."
+          label="Back to Dashboard"
+        />
 
-        <Button className="btn-primary flex-1">
-          <Link
-            href={`/interview/${id}`}
-            className="flex w-full justify-center"
-          >
-            <p className="text-sm font-semibold text-black text-center">
-              Retake Interview
-            </p>
-          </Link>
-        </Button>
+        {/* Retake Interview Button */}
+        <ToastButton
+          className="btn-primary w-full sm:w-1/2 "
+          href={`/interview/${id}`}
+          message="Redirecting to retake the interview..."
+          label="Retake Interview"
+        />
       </div>
     </section>
   );
 };
+
 export default Page;
