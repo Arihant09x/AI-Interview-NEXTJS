@@ -5,7 +5,7 @@
 
 ## Live Website
 
-Access the live version of the AI Voice Agent here: ([https://your-live-website-url.com](https://crack-wise.vercel.app/sign-in))
+Access the live version of the AI Voice Agent here: [https://crack-wise.vercel.app/sign-in](https://crack-wise.vercel.app/sign-in)
 
 ## Project Description
 
